@@ -45,7 +45,7 @@ app.post('/api/chat', async (req, res) => {
       {
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer AstraCS:lmdXCGtQMDJXfgmqDxrZyvoP:ee58d95d84a67d505bba61ed4897af203e7301fe55a7dd822a30865156372d4e"
+          "Authorization": "Bearer AstraCS:yhiEjxzOvcWyzaNfBjvONsxL:edb023607c3ab77875df69836901407150e5fc954851209705ce9ae3670f7830"
         }
       }
     );
@@ -103,6 +103,9 @@ app.post('/api/chat', async (req, res) => {
       // Something happened in setting up the request that triggered an Error
       console.error('Error setting up request:', error.config);
     }
+    
+    // Log the full error object for detailed error information
+    console.error('Full error object:', error);
     
     res.status(500).json({ error: 'Failed to process your request', details: error.message });
   }
