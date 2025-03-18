@@ -1,0 +1,21 @@
+{
+  "name": "huttohut-chat",
+  "version": "1.0.0",
+  "description": "HutToHut Chat Application with Astra DB Integration",
+  "scripts": {
+    "start": "cd server && node server.js",
+    "build": "cd client && npm install && npm run build && cd ../server && npm install",
+    "dev:client": "cd client && npm start",
+    "dev:server": "cd server && npm run dev"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/huttohut-chat.git"
+  },
+  "keywords": ["chat", "astra", "langflow", "react", "express"],
+  "author": "",
+  "license": "MIT"
+} 

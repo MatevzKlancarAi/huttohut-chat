@@ -1,0 +1,22 @@
+run = "npm start"
+hidden = [".config", "package-lock.json"]
+language = "nodejs"
+
+[packager]
+language = "nodejs"
+  [packager.features]
+  packageSearch = true
+  guessImports = true
+  enabledForHosting = true
+
+[languages.javascript]
+pattern = "**/{*.js,*.jsx,*.ts,*.tsx}"
+  [languages.javascript.languageServer]
+  start = ["typescript-language-server", "--stdio"]
+
+[env]
+PORT = "3000"
+XDG_CONFIG_HOME = "/home/runner/.config"
+
+[nix]
+channel = "stable-21_11" 
