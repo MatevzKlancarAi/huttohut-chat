@@ -120,4 +120,33 @@
 .chat-input-container button:disabled {
   background-color: #c8c8c8;
   cursor: not-allowed;
+}
+
+/* Styles for sources */
+.sources-container {
+  margin-left: 15px;
+  margin-bottom: 15px;
+  font-size: 0.9em;
+}
+
+.sources-container details {
+  margin-top: 5px;
+}
+
+.sources-container summary {
+  color: #666;
+  cursor: pointer;
+  font-size: 0.85em;
+}
+
+.sources-list {
+  margin-top: 5px;
+  padding-left: 20px;
+  list-style-type: disc;
+}
+
+.source-score {
+  color: #888;
+  font-size: 0.85em;
+  margin-left: 5px;
 } 

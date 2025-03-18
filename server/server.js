@@ -2,10 +2,22 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const path = require('node:path');
+const { Pinecone } = require('@pinecone-database/pinecone');
+const { OpenAI } = require('openai');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 6000;
+
+// Initialize OpenAI client for chat completions only
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Initialize Pinecone client
+const pinecone = new Pinecone({
+  apiKey: process.env.PINECONE_API_KEY,
+});
 
 // Middleware
 app.use(cors());
@@ -14,7 +26,84 @@ app.use(express.json());
 // Serve static files from the client build folder
 app.use(express.static(path.join(__dirname, '../client/build')));
 
-// API endpoint to proxy requests to Astra DB
+// Function to generate embeddings using OpenAI
+async function getEmbedding(text) {
+  try {
+    const response = await openai.embeddings.create({
+      model: 'text-embedding-3-small',
+      input: text
+    });
+    return response.data[0].embedding;
+  } catch (error) {
+    console.error('Error generating embedding:', error);
+    throw error;
+  }
+}
+
+// New endpoint for Pinecone search
+app.post('/api/search', async (req, res) => {
+  try {
+    const { inputValue } = req.body;
+    
+    console.log('Searching Pinecone with input:', inputValue);
+    
+    // Get the embedding for the input
+    const embedding = await getEmbedding(inputValue);
+    
+    // Query Pinecone using the embedding
+    const indexName = process.env.PINECONE_INDEX_NAME;
+    if (!indexName) {
+      return res.status(500).json({ error: 'PINECONE_INDEX_NAME not set in .env file' });
+    }
+    
+    const index = pinecone.index(indexName);
+    // Use the same namespace as in the upload script
+    const namespace = 'hiking-content';
+    
+    const queryResponse = await index.namespace(namespace).query({
+      vector: embedding,
+      topK: 5,
+      includeMetadata: true
+    });
+    
+    // Format the response
+    const results = queryResponse.matches.map(match => ({
+      id: match.id,
+      score: match.score,
+      metadata: match.metadata
+    }));
+    
+    // Generate response with OpenAI using context from Pinecone
+    let context = '';
+    if (results.length > 0) {
+      // Extract content from metadata if available
+      context = results.map(r => r.metadata.content || JSON.stringify(r.metadata)).join('\n\n');
+    }
+    
+    // Call OpenAI with the context and query
+    const openaiResponse = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant. Use the context provided to answer the question.' },
+        { role: 'user', content: `Context: ${context}\n\nQuestion: ${inputValue}` }
+      ]
+    });
+    
+    const messageText = openaiResponse.choices[0].message.content;
+    
+    // Return the results
+    res.json({ 
+      text: messageText, 
+      sources: results 
+    });
+    
+  } catch (error) {
+    console.error('Error with Pinecone search:', error.message);
+    res.status(500).json({ error: 'Failed to process your request', details: error.message });
+  }
+});
+
+// Original API endpoint to proxy requests to Astra DB
 app.post('/api/chat', async (req, res) => {
   try {
     const { inputValue } = req.body;

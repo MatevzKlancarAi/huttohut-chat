@@ -18,17 +18,20 @@ const ChatComponent = () => {
     setIsLoading(true);
     
     try {
-      // Send message to the API
+      // Send message to the API - Use /api/search endpoint instead of /api/chat
       console.log('Sending request to server with input:', input);
-      const response = await axios.post('/api/chat', { inputValue: input });
+      const response = await axios.post('/api/search', { inputValue: input });
       console.log('Response received:', response.data);
       
-      // Handle different response formats
+      // Handle different response formats - Pinecone response includes text and sources
       let responseText = '';
-      if (typeof response.data === 'string') {
-        responseText = response.data;
-      } else if (response.data?.text) {
+      let sources = [];
+      
+      if (response.data?.text) {
         responseText = response.data.text;
+        sources = response.data.sources || [];
+      } else if (typeof response.data === 'string') {
+        responseText = response.data;
       } else if (response.data && typeof response.data === 'object') {
         responseText = JSON.stringify(response.data, null, 2);
       } else {
@@ -39,7 +42,8 @@ const ChatComponent = () => {
       const botMessage = { 
         text: responseText, 
         sender: 'bot', 
-        id: Date.now() + 1 
+        id: Date.now() + 1,
+        sources: sources
       };
       setMessages(prevMessages => [...prevMessages, botMessage]);
     } catch (error) {
@@ -81,11 +85,29 @@ const ChatComponent = () => {
           </div>
         ) : (
           messages.map((message) => (
-            <div 
-              key={message.id} 
-              className={`message ${message.sender} ${message.error ? 'error' : ''}`}
-            >
-              {message.text}
+            <div key={message.id}>
+              <div 
+                className={`message ${message.sender} ${message.error ? 'error' : ''}`}
+              >
+                {message.text}
+              </div>
+              {message.sources && message.sources.length > 0 && (
+                <div className="sources-container">
+                  <details>
+                    <summary>Sources ({message.sources.length})</summary>
+                    <ul className="sources-list">
+                      {message.sources.map((source) => (
+                        <li key={`${source.id}-${source.score}`}>
+                          <strong>{source.metadata.title}</strong> 
+                          <span className="source-score">
+                            (Relevance: {(source.score * 100).toFixed(1)}%)
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                </div>
+              )}
             </div>
           ))
         )}
