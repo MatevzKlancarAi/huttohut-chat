@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const path = require('node:path');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 6000;
@@ -19,7 +20,7 @@ app.post('/api/chat', async (req, res) => {
     const { inputValue } = req.body;
     
     console.log('Sending request to Astra DB with input:', inputValue);
-    console.log('Using token:', 'AstraCS:lmdXCGtQMDJXfgmqDxrZyvoP:ee58d95d84a67d505bba61ed4897af203e7301fe55a7dd822a30865156372d4e');
+    console.log('Using token:', process.env.ASTRA_DB_API_KEY);
     console.log('Request URL:', "https://api.langflow.astra.datastax.com/lf/bccf6379-26f4-4851-8abc-6049672742cb/api/v1/run/0b28e19e-517c-4c37-aa27-eeea84316554?stream=false");
     
     const response = await axios.post(
@@ -45,7 +46,7 @@ app.post('/api/chat', async (req, res) => {
       {
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer AstraCS:yhiEjxzOvcWyzaNfBjvONsxL:edb023607c3ab77875df69836901407150e5fc954851209705ce9ae3670f7830"
+          "Authorization": `Bearer ${process.env.ASTRA_DB_API_KEY}`
         }
       }
     );
