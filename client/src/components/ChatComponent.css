@@ -33,14 +33,14 @@
 
 .user {
   align-self: flex-end;
-  background-color: #0B93F6;
+  background-color: #0b93f6;
   color: white;
   border-bottom-right-radius: 5px;
 }
 
 .bot {
   align-self: flex-start;
-  background-color: #E5E5EA;
+  background-color: #e5e5ea;
   color: black;
   border-bottom-left-radius: 5px;
   white-space: pre-line;
@@ -51,6 +51,20 @@
 .error {
   background-color: #ffdddd;
   color: #ff0000;
+}
+
+.draft {
+  background-color: #fff8e6;
+  border: 2px dashed #ffcc80;
+}
+
+.draft::before {
+  content: "*DRAFT*";
+  display: block;
+  font-weight: bold;
+  color: #ff9800;
+  margin-bottom: 8px;
+  font-size: 0.9em;
 }
 
 .loading {
@@ -86,7 +100,9 @@
 }
 
 @keyframes bounce {
-  0%, 60%, 100% {
+  0%,
+  60%,
+  100% {
     transform: translateY(0);
   }
   30% {
@@ -112,7 +128,7 @@
 .chat-input-container button {
   margin-left: 10px;
   padding: 10px 20px;
-  background-color: #0B93F6;
+  background-color: #0b93f6;
   color: white;
   border: none;
   border-radius: 20px;
@@ -148,6 +164,18 @@
   list-style-type: disc;
 }
 
+.relevance-info {
+  margin: 10px 0;
+  padding: 8px 12px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.relevance-info p {
+  margin: 5px 0;
+}
+
 .source-score {
   color: #888;
   font-size: 0.85em;
@@ -170,7 +198,7 @@
 }
 
 .config-button {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   border: none;
   padding: 8px 12px;
@@ -217,7 +245,7 @@
   white-space: pre-line;
   font-family: Arial, sans-serif;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: relative; /* For positioning the copy button */
 }
 
@@ -239,4 +267,4 @@
 
 .copy-button:hover {
   opacity: 1;
-} 
+}

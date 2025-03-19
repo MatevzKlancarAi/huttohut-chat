@@ -60,9 +60,18 @@ const queryWithEmbedding = async (embedding: number[], topK = 3): Promise<Search
  * @returns Array of content strings
  */
 const extractContentFromResults = (results: SearchResult[]): string[] => {
-  return results
-    .filter((result) => result.metadata && 'content' in result.metadata)
-    .map((result) => result.metadata.content as string);
+  // Filter out results with low relevance (less than 0.3)
+  const filteredResults = results
+    .filter((result) => result.score >= 0.3)
+    .filter((result) => result.metadata && 'content' in result.metadata);
+
+  // Sort by relevance score (highest first)
+  filteredResults.sort((a, b) => b.score - a.score);
+
+  // Take only the top 2 most relevant content pieces
+  const topResults = filteredResults.slice(0, 2);
+
+  return topResults.map((result) => result.metadata.content as string);
 };
 
 export { pinecone, getIndex, queryWithEmbedding, extractContentFromResults };

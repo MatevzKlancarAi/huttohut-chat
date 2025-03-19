@@ -59,10 +59,15 @@ const ChatComponent = () => {
       // Handle different response formats - Pinecone response includes text and sources
       let responseText = "";
       let sources = [];
+      let hasRelevantData = true; // Default to true
 
       if (response.data?.text) {
         responseText = response.data.text;
         sources = response.data.sources || [];
+        hasRelevantData =
+          response.data.hasRelevantData !== undefined
+            ? response.data.hasRelevantData
+            : true;
       } else if (typeof response.data === "string") {
         responseText = response.data;
       } else if (response.data && typeof response.data === "object") {
@@ -77,6 +82,13 @@ const ChatComponent = () => {
         sender: "bot",
         id: Date.now() + 1,
         sources: sources,
+        isDraft: !hasRelevantData, // Mark as draft if no relevant data
+        relevanceInfo: {
+          hasRelevantData: hasRelevantData,
+          bestScore:
+            sources.length > 0 ? Math.max(...sources.map((s) => s.score)) : 0,
+          threshold: 0.45, // Should match the threshold in the backend
+        },
       };
       setMessages((prevMessages) => [...prevMessages, botMessage]);
     } catch (error) {
@@ -171,7 +183,9 @@ const ChatComponent = () => {
               <div
                 className={`message ${message.sender} ${
                   message.error ? "error" : ""
-                } ${message.sender === "bot" ? "email-format" : ""}`}
+                } ${message.sender === "bot" ? "email-format" : ""} ${
+                  message.isDraft ? "draft" : ""
+                }`}
               >
                 {message.text}
                 {message.sender === "bot" && !message.error && (
@@ -189,6 +203,24 @@ const ChatComponent = () => {
                 <div className="sources-container">
                   <details>
                     <summary>Sources ({message.sources.length})</summary>
+                    {message.relevanceInfo && (
+                      <div className="relevance-info">
+                        <p>
+                          Relevance check:{" "}
+                          {message.relevanceInfo.hasRelevantData
+                            ? "Passed"
+                            : "Failed"}
+                        </p>
+                        <p>
+                          Best match:{" "}
+                          {(message.relevanceInfo.bestScore * 100).toFixed(1)}%
+                        </p>
+                        <p>
+                          Threshold:{" "}
+                          {(message.relevanceInfo.threshold * 100).toFixed(1)}%
+                        </p>
+                      </div>
+                    )}
                     <ul className="sources-list">
                       {message.sources.map((source) => (
                         <li key={`${source.id}-${source.score}`}>

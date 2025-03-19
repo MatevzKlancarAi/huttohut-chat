@@ -42,6 +42,23 @@ const handleVectorSearch = async (c: Context) => {
         // Extract context from search results
         const context = extractContentFromResults(results);
 
+        // Log the search results scores for debugging
+        console.log('Search results relevance scores:');
+        results.forEach((result, index) => {
+          console.log(
+            `Result ${index + 1}: Score=${result.score.toFixed(3)} (${(result.score * 100).toFixed(1)}%), ID=${result.id}`,
+          );
+        });
+
+        // Check if we have sufficient relevant data (lowered threshold from 0.7 to 0.5)
+        const relevanceThreshold = 0.45; // 45% relevance threshold
+        const hasRelevantData =
+          results.length > 0 && results.some((result) => result.score > relevanceThreshold);
+
+        console.log(
+          `Has relevant data: ${hasRelevantData} (threshold: ${relevanceThreshold}, best score: ${results.length > 0 ? Math.max(...results.map((r) => r.score)).toFixed(3) : 'N/A'})`,
+        );
+
         // Prepare greeting based on customer name
         const greeting = customerName ? `Dear ${customerName},\n\n` : 'Hello,\n\n';
 
@@ -55,21 +72,25 @@ const handleVectorSearch = async (c: Context) => {
             content: `You are a professional customer support agent responding to customer inquiries via email. 
 
 Your responses should:
-1. Be friendly, helpful, and professional
-2. Use the context provided to answer the question thoroughly
-3. Use proper paragraphs with line breaks between paragraphs
-4. Format lists with numbers or bullet points when appropriate
-5. Include a line at the end offering additional help like: "If you have any further questions, please don't hesitate to contact us."
+1. Be brief, concise, and directly address ONLY the specific question asked
+2. Use ONLY the relevant parts of the context provided - ignore context that doesn't directly relate to the question
+3. Keep responses to 3-4 sentences maximum unless more detail is explicitly required
+4. Only include information that directly answers the customer's specific question
+5. Do NOT include generic information about topics not directly asked about
+
+${
+  !hasRelevantData
+    ? "IMPORTANT: There is insufficient data to properly answer this question. Mark your response with *DRAFT* at the beginning and include a message stating: 'I was not able to answer this question, I had too little data.' Then provide a general response based on common knowledge, but make it clear this is not based on specific company data."
+    : ''
+}
 
 Format rules:
 - Begin your response with "${greeting}" (already formatted, just use as is)
 - End your email with "${signature}" (already formatted, just use as is)
-- Use line breaks to separate paragraphs
-- Keep paragraphs concise and focused on one topic
-- When presenting options or steps, use numbered lists
-- Format your response as if it's going to be sent directly as an email
+- Keep paragraphs very short and focused
+- Do NOT add information about topics the customer didn't ask about
 
-Remember, this will be used in an actual email to the customer, so ensure the formatting is clean and professional.`,
+Remember, the customer wants a direct answer to their specific question, not general information.`,
           },
           { role: 'user', content: `Context: ${context}\n\nCustomer Inquiry: ${inputValue}` },
         ];
@@ -84,6 +105,7 @@ Remember, this will be used in an actual email to the customer, so ensure the fo
           text: messageText,
           sources: results,
           threadId: threadId,
+          hasRelevantData: hasRelevantData,
         };
       },
       {
