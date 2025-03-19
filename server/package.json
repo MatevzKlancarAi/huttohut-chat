@@ -9,7 +9,10 @@
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "lint": "eslint src --ext .ts",
-    "lint:fix": "eslint src --ext .ts --fix"
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.{ts,js,json,md,yaml,yml}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json,md,yaml,yml}\"",
+    "fix": "pnpm lint:fix && pnpm format"
   },
   "keywords": [],
   "author": "",

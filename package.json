@@ -6,7 +6,10 @@
     "start": "cd server && pnpm start",
     "build": "cd client && npm install && npm run build && cd ../server && pnpm install && pnpm build",
     "dev:client": "cd client && npm start",
-    "dev:server": "cd server && pnpm dev"
+    "dev:server": "cd server && pnpm dev",
+    "format": "cd server && pnpm format",
+    "format:check": "cd server && pnpm format:check",
+    "fix": "cd server && pnpm fix"
   },
   "engines": {
     "node": ">=16.0.0"
@@ -15,7 +18,14 @@
     "type": "git",
     "url": "https://github.com/MatevzKlancarAi/huttohut-chat.git"
   },
-  "keywords": ["chat", "pinecone", "langflow", "react", "express", "hono"],
+  "keywords": [
+    "chat",
+    "pinecone",
+    "langflow",
+    "react",
+    "express",
+    "hono"
+  ],
   "author": "",
   "license": "MIT"
-} 
+}
