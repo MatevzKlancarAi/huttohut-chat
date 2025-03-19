@@ -1,12 +1,12 @@
 {
   "name": "huttohut-chat",
   "version": "1.0.0",
-  "description": "HutToHut Chat Application with Astra DB Integration",
+  "description": "HutToHut Chat Application with Vector Search Integration",
   "scripts": {
-    "start": "cd server && node src/server.js",
-    "build": "cd client && npm install && npm run build && cd ../server && npm install",
+    "start": "cd server && pnpm start",
+    "build": "cd client && npm install && npm run build && cd ../server && pnpm install && pnpm build",
     "dev:client": "cd client && npm start",
-    "dev:server": "cd server && npm run dev"
+    "dev:server": "cd server && pnpm dev"
   },
   "engines": {
     "node": ">=16.0.0"
@@ -15,7 +15,7 @@
     "type": "git",
     "url": "https://github.com/MatevzKlancarAi/huttohut-chat.git"
   },
-  "keywords": ["chat", "astra", "langflow", "react", "express"],
+  "keywords": ["chat", "pinecone", "langflow", "react", "express", "hono"],
   "author": "",
   "license": "MIT"
 } 

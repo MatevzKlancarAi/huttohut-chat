@@ -2,8 +2,8 @@ services:
   - type: web
     name: huttohut-chat
     env: node
-    buildCommand: cd client && npm install && npm run build && cd ../server && npm install
-    startCommand: cd server && node server.js
+    buildCommand: npm install -g pnpm && cd client && npm install && npm run build && cd ../server && pnpm install && pnpm run build
+    startCommand: cd server && node dist/index.js
     envVars:
       - key: PORT
         value: 10000

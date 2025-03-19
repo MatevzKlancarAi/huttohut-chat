@@ -1,25 +1,34 @@
 /**
  * LiteralAI service for tracking and logging LLM interactions
  */
-const { LiteralClient } = require('@literalai/client');
-const config = require('../config');
+import { LiteralClient } from '@literalai/client';
+import { config } from '../env.js';
+
+// Define types for Literal API
+interface ThreadOptions {
+  name?: string;
+  threadId?: string;
+  metadata?: Record<string, unknown>;
+}
 
 // Initialize Literal client with configuration
 const literalClient = new LiteralClient({
   apiKey: config.literal.apiKey,
-  batchSize: config.literal.batchSize
+  // Note: batchSize might not be in the type definitions, but it's used in the actual code
+  // @ts-ignore
+  batchSize: config.literal.batchSize,
 });
 
 /**
  * Wraps a function execution in a Literal AI thread for better logging
- * @param {Function} fn - The async function to execute inside the thread
- * @param {Object} options - Thread options
- * @param {string} options.name - Name of the thread
- * @param {string} options.threadId - Optional thread ID to continue an existing thread
- * @param {Object} options.metadata - Optional metadata for the thread
- * @returns {Promise<any>} - The result of the wrapped function
+ * @param fn - The async function to execute inside the thread
+ * @param options - Thread options
+ * @returns The result of the wrapped function
  */
-const wrapInThread = async (fn, { name, threadId, metadata = {} } = {}) => {
+const wrapInThread = async <T>(
+  fn: () => Promise<T>,
+  { name, threadId, metadata = {} }: ThreadOptions = {},
+): Promise<T> => {
   try {
     return await literalClient
       .thread({ name: name || 'Default Thread', id: threadId, metadata })
@@ -33,17 +42,16 @@ const wrapInThread = async (fn, { name, threadId, metadata = {} } = {}) => {
 
 /**
  * Logs a user message as a step in the current thread
- * @param {string} content - Message content
- * @param {string} name - Step name, defaults to 'User'
- * @returns {Promise<void>}
+ * @param content - Message content
+ * @param name - Step name, defaults to 'User'
  */
-const logUserMessage = async (content, name = 'User') => {
+const logUserMessage = async (content: string, name = 'User'): Promise<void> => {
   try {
     await literalClient
       .step({
         type: 'user_message',
         name,
-        output: { content }
+        output: { content },
       })
       .send();
   } catch (error) {
@@ -53,17 +61,16 @@ const logUserMessage = async (content, name = 'User') => {
 
 /**
  * Logs a system/bot message as a step in the current thread
- * @param {string} content - Message content
- * @param {string} name - Step name, defaults to 'System'
- * @returns {Promise<void>}
+ * @param content - Message content
+ * @param name - Step name, defaults to 'System'
  */
-const logSystemMessage = async (content, name = 'System') => {
+const logSystemMessage = async (content: string, name = 'System'): Promise<void> => {
   try {
     await literalClient
       .step({
         type: 'system_message',
         name,
-        output: { content }
+        output: { content },
       })
       .send();
   } catch (error) {
@@ -72,7 +79,7 @@ const logSystemMessage = async (content, name = 'System') => {
 };
 
 // Setup instrumentation for OpenAI
-const setupInstrumentation = () => {
+const setupInstrumentation = (): void => {
   try {
     literalClient.instrumentation.openai();
     console.log('Literal AI instrumentation for OpenAI set up successfully');
@@ -82,10 +89,12 @@ const setupInstrumentation = () => {
 };
 
 // Graceful shutdown handling for Literal
-const shutdown = async () => {
+const shutdown = async (): Promise<void> => {
   try {
-    // If the flush method exists, use it
+    // flush might not be in the type definitions, but it's used in the actual code
+    // @ts-ignore
     if (typeof literalClient.flush === 'function') {
+      // @ts-ignore
       await literalClient.flush();
       console.log('Successfully flushed Literal logs');
     }
@@ -94,11 +103,11 @@ const shutdown = async () => {
   }
 };
 
-module.exports = {
+export {
   literalClient,
   setupInstrumentation,
   wrapInThread,
   logUserMessage,
   logSystemMessage,
-  shutdown
-}; 
+  shutdown,
+};
