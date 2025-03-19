@@ -8,6 +8,10 @@ const ChatComponent = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [threadId, setThreadId] = useState('');
   const [sessionId, setSessionId] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [agentName, setAgentName] = useState('');
+  const [showConfig, setShowConfig] = useState(false);
+  const [copySuccess, setCopySuccess] = useState('');
   
   // Initialize session ID when component mounts
   useEffect(() => {
@@ -35,7 +39,12 @@ const ChatComponent = () => {
         'session-id': sessionId || `session-${Date.now()}`
       };
       
-      const response = await axios.post('/api/search', { inputValue: input }, { headers });
+      const response = await axios.post('/api/search', { 
+        inputValue: input,
+        customerName,
+        agentName
+      }, { headers });
+      
       console.log('Response received:', response.data);
       
       // Update thread ID if returned from server
@@ -96,8 +105,60 @@ const ChatComponent = () => {
     }
   };
 
+  const toggleConfig = () => {
+    setShowConfig(!showConfig);
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setCopySuccess('Copied!');
+        setTimeout(() => setCopySuccess(''), 2000);
+      })
+      .catch(err => {
+        console.error('Failed to copy: ', err);
+        setCopySuccess('Failed to copy');
+      });
+  };
+
   return (
     <div className="chat-container">
+      <div className="chat-header">
+        <h2>Customer Support Chat</h2>
+        <button 
+          className="config-button" 
+          onClick={toggleConfig}
+          type="button"
+        >
+          {showConfig ? 'Hide Settings' : 'Settings'}
+        </button>
+      </div>
+
+      {showConfig && (
+        <div className="chat-config">
+          <div className="config-field">
+            <label htmlFor="customerName">Customer Name:</label>
+            <input
+              id="customerName"
+              type="text"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              placeholder="Enter customer name"
+            />
+          </div>
+          <div className="config-field">
+            <label htmlFor="agentName">Agent Name:</label>
+            <input
+              id="agentName"
+              type="text"
+              value={agentName}
+              onChange={(e) => setAgentName(e.target.value)}
+              placeholder="Enter agent name"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="chat-messages">
         {messages.length === 0 ? (
           <div className="empty-chat">
@@ -107,9 +168,19 @@ const ChatComponent = () => {
           messages.map((message) => (
             <div key={message.id}>
               <div 
-                className={`message ${message.sender} ${message.error ? 'error' : ''}`}
+                className={`message ${message.sender} ${message.error ? 'error' : ''} ${message.sender === 'bot' ? 'email-format' : ''}`}
               >
                 {message.text}
+                {message.sender === 'bot' && !message.error && (
+                  <button 
+                    className="copy-button" 
+                    onClick={() => copyToClipboard(message.text)}
+                    title="Copy email text"
+                    type="button"
+                  >
+                    {copySuccess || 'Copy'}
+                  </button>
+                )}
               </div>
               {message.sources && message.sources.length > 0 && (
                 <div className="sources-container">

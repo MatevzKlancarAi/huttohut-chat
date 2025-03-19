@@ -36,7 +36,7 @@ const getEmbedding = async (text) => {
  * @param {string} options.threadName - Optional thread name
  * @returns {Promise<string>} - The generated completion text
  */
-const getChatCompletion = async (messages, { threadId, threadName = 'Chat Thread' } = {}) => {
+const getChatCompletion = async (messages, { threadId, threadName = 'Chat Thread', temperature = 0.2 } = {}) => {
   // Wrap the OpenAI call in a Literal AI thread if threadId is provided
   return await wrapInThread(async () => {
     // Log the user message if the last message is from the user
@@ -47,7 +47,11 @@ const getChatCompletion = async (messages, { threadId, threadName = 'Chat Thread
     
     const response = await openai.chat.completions.create({
       model: config.openai.completionModel,
-      messages
+      messages,
+      temperature: temperature,
+      // Lower temperature for more deterministic responses
+      presence_penalty: 0.0,  // Reduced to avoid introducing variation
+      frequency_penalty: 0.0  // Reduced to maintain consistent language
     });
     
     const messageText = response.choices[0].message.content;

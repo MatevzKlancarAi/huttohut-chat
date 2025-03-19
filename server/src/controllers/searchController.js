@@ -12,7 +12,7 @@ const { wrapInThread, logUserMessage } = require('../services/literalService');
  */
 const handleVectorSearch = async (req, res) => {
   try {
-    const { inputValue } = req.body;
+    const { inputValue, customerName, agentName } = req.body;
     const sessionId = req.headers['session-id'] || `session-${Date.now()}`;
     const threadId = req.headers['thread-id'] || `thread-${Date.now()}`;
     
@@ -32,10 +32,33 @@ const handleVectorSearch = async (req, res) => {
       // Extract context from search results
       const context = extractContentFromResults(results);
       
+      // Prepare greeting based on customer name
+      const greeting = customerName ? `Dear ${customerName},\n\n` : 'Hello,\n\n';
+      
+      // Prepare signature based on agent name
+      const signature = agentName ? `\n\nBest Regards,\n${agentName}` : '\n\nBest Regards,';
+      
       // Generate response with OpenAI using context
       const messages = [
-        { role: 'system', content: 'You are a helpful assistant. Use the context provided to answer the question.' },
-        { role: 'user', content: `Context: ${context}\n\nQuestion: ${inputValue}` }
+        { role: 'system', content: `You are a professional customer support agent responding to customer inquiries via email. 
+
+Your responses should:
+1. Be friendly, helpful, and professional
+2. Use the context provided to answer the question thoroughly
+3. Use proper paragraphs with line breaks between paragraphs
+4. Format lists with numbers or bullet points when appropriate
+5. Include a line at the end offering additional help like: "If you have any further questions, please don't hesitate to contact us."
+
+Format rules:
+- Begin your response with "${greeting}" (already formatted, just use as is)
+- End your email with "${signature}" (already formatted, just use as is)
+- Use line breaks to separate paragraphs
+- Keep paragraphs concise and focused on one topic
+- When presenting options or steps, use numbered lists
+- Format your response as if it's going to be sent directly as an email
+
+Remember, this will be used in an actual email to the customer, so ensure the formatting is clean and professional.` },
+        { role: 'user', content: `Context: ${context}\n\nCustomer Inquiry: ${inputValue}` }
       ];
       
       const messageText = await getChatCompletion(messages, { 
@@ -54,7 +77,9 @@ const handleVectorSearch = async (req, res) => {
       threadId, 
       metadata: { 
         sessionId, 
-        query: inputValue 
+        query: inputValue,
+        customerName,
+        agentName
       } 
     });
     

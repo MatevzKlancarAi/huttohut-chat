@@ -43,6 +43,9 @@
   background-color: #E5E5EA;
   color: black;
   border-bottom-left-radius: 5px;
+  white-space: pre-line;
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
 }
 
 .error {
@@ -149,4 +152,91 @@
   color: #888;
   font-size: 0.85em;
   margin-left: 5px;
+}
+
+/* Add these styles for the new configuration UI */
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.chat-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.config-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.config-button:hover {
+  background-color: #45a049;
+}
+
+.chat-config {
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.config-field {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.config-field label {
+  width: 120px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.config-field input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Special styling for email-like messages */
+.email-format {
+  padding: 15px 20px;
+  background-color: #f8f9fa;
+  border-left: 4px solid #6c757d;
+  white-space: pre-line;
+  font-family: Arial, sans-serif;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  position: relative; /* For positioning the copy button */
+}
+
+/* Copy button styles */
+.copy-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.copy-button:hover {
+  opacity: 1;
 } 
