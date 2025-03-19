@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ChatComponent.css';
 
@@ -6,6 +6,14 @@ const ChatComponent = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [threadId, setThreadId] = useState('');
+  const [sessionId, setSessionId] = useState('');
+  
+  // Initialize session ID when component mounts
+  useEffect(() => {
+    // Create a unique session ID for this chat session
+    setSessionId(`session-${Date.now()}`);
+  }, []);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -20,8 +28,20 @@ const ChatComponent = () => {
     try {
       // Send message to the API - Use /api/search endpoint instead of /api/chat
       console.log('Sending request to server with input:', input);
-      const response = await axios.post('/api/search', { inputValue: input });
+      
+      // Add thread and session headers to maintain conversation context in Literal
+      const headers = {
+        'thread-id': threadId || '',
+        'session-id': sessionId || `session-${Date.now()}`
+      };
+      
+      const response = await axios.post('/api/search', { inputValue: input }, { headers });
       console.log('Response received:', response.data);
+      
+      // Update thread ID if returned from server
+      if (response.data.threadId) {
+        setThreadId(response.data.threadId);
+      }
       
       // Handle different response formats - Pinecone response includes text and sources
       let responseText = '';
