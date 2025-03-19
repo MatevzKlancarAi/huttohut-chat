@@ -10,6 +10,7 @@ coverage/
 client/build/
 build/
 dist/
+server/client-build/
 
 # Misc
 .DS_Store

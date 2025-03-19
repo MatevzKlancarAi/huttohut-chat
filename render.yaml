@@ -2,9 +2,16 @@ services:
   - type: web
     name: huttohut-chat
     env: node
-    buildCommand: npm install -g pnpm && cd client && npm install && npm run build && cd ../server && pnpm install && pnpm run build
+    buildCommand: |
+      npm install -g pnpm && 
+      # Build client
+      cd client && npm install && npm run build && 
+      # Copy client build to where server can access it
+      mkdir -p ../server/client-build && cp -r build/* ../server/client-build/ && 
+      # Build server
+      cd ../server && pnpm install && pnpm run build
     startCommand: cd server && node dist/index.js
     envVars:
       - key: PORT
         value: 10000
-    plan: free 
+    plan: free
