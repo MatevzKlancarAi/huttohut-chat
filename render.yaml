@@ -1,19 +1,26 @@
 services:
+  # Backend API Service
   - type: web
-    name: huttohut-chat
+    name: huttohut-api
     env: node
+    plan: free
     buildCommand: |
       npm install -g pnpm && 
-      # Build client
-      cd client && npm install && npm run build && 
-      # Copy client build to where server can access it
-      mkdir -p ../server/client-build && cp -r build/* ../server/client-build/ && 
-      # Debug: List files in client-build directory
-      echo "Contents of server/client-build:" && ls -la ../server/client-build && 
-      # Build server
-      cd ../server && pnpm install --no-frozen-lockfile && pnpm run build
+      cd server && 
+      pnpm install --no-frozen-lockfile && 
+      pnpm build
     startCommand: cd server && node dist/index.js
     envVars:
       - key: PORT
         value: 10000
-    plan: free
+      - fromGroup: huttohut-env
+
+  # Frontend Static Site
+  - type: web
+    name: huttohut-web
+    env: static
+    buildCommand: cd client && npm install && npm run build
+    staticPublishPath: ./client/build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://huttohut-api.onrender.com

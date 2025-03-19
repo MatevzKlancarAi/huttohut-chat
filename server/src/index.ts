@@ -32,41 +32,16 @@ app.post('/api/search', async (c) => {
 // Add a health check endpoint
 app.get('/health', (c) => c.json({ status: 'ok' }));
 
-// Add debug endpoint to list client build files
-app.get('/debug-files', async (c) => {
-  try {
-    console.log('Debug: Checking client build directory:', clientBuildPath);
-    const files = await fs.readdir(clientBuildPath);
-    const fileStats = await Promise.all(
-      files.map(async (file) => {
-        const filePath = path.join(clientBuildPath, file);
-        const stats = await fs.stat(filePath);
-        return {
-          name: file,
-          isDirectory: stats.isDirectory(),
-          size: stats.size,
-          path: filePath,
-        };
-      }),
-    );
-    return c.json({ clientBuildPath, files: fileStats });
-  } catch (error) {
-    console.error('Error listing files:', error);
-    return c.json({
-      error: error instanceof Error ? error.message : String(error),
-      clientBuildPath,
-    });
-  }
-});
+// Serve static files (CSS, JS, images, etc.)
+app.use('/static/*', serveStatic({ root: clientBuildPath }));
+app.get('/favicon.ico', serveStatic({ root: clientBuildPath }));
+app.get('/asset-manifest.json', serveStatic({ root: clientBuildPath }));
 
-// Serve static files from client build folder
-app.use('/*', serveStatic({ root: clientBuildPath }));
-
-// Serve index.html for any route not handled by static files or API routes
+// Serve index.html for all other routes to support client-side routing
 app.get('*', async (c) => {
   try {
-    const indexHtml = await fs.readFile(path.join(clientBuildPath, 'index.html'), 'utf-8');
-    return c.html(indexHtml);
+    const content = await fs.readFile(path.join(clientBuildPath, 'index.html'));
+    return c.html(content.toString());
   } catch (error) {
     console.error('Error serving index.html:', error);
     return c.text('Not found', 404);
