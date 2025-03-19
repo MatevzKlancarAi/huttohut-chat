@@ -10,6 +10,13 @@ import { config } from './env.js';
 import { setupInstrumentation, shutdown } from './services/literalService.js';
 import { searchController } from './controllers/searchController.js';
 
+// Get current directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Path to client build directory
+const clientBuildPath = path.resolve(__dirname, '../client-build');
+
 // Initialize Hono app
 const app = new Hono();
 
@@ -25,71 +32,59 @@ app.post('/api/search', async (c) => {
 // Add a health check endpoint
 app.get('/health', (c) => c.json({ status: 'ok' }));
 
-// Get current directory
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Configure client build path
-const getClientBuildPath = async () => {
-  // Possible client build paths (in order of preference)
-  const paths = [
-    path.resolve(__dirname, '../client-build'), // Render production
-    path.resolve(__dirname, '../../client/build'), // Local development
-  ];
-
-  // Find first accessible path
-  for (const p of paths) {
-    try {
-      await fs.access(p);
-      return p;
-    } catch (e) {
-      // Path not accessible, try next one
-    }
-  }
-
-  // If no paths are found, log error and default to first path
-  console.error('Warning: No client build directory found');
-  return paths[0];
-};
-
-// Start server with static file serving
-const startServer = async () => {
+// Add debug endpoint to list client build files
+app.get('/debug-files', async (c) => {
   try {
-    const clientBuildPath = await getClientBuildPath();
-
-    // Serve static files from the React app
-    app.use('/', serveStatic({ root: clientBuildPath }));
-
-    // Serve index.html for any other routes (for React router)
-    app.get('*', async (c) => {
-      try {
-        const indexPath = path.join(clientBuildPath, 'index.html');
-        const indexHtml = await fs.readFile(indexPath, 'utf-8');
-        return c.html(indexHtml);
-      } catch (error) {
-        console.error('Error serving index.html:', error);
-        return c.text('Not found', 404);
-      }
-    });
-
-    // Start the server
-    const port = config.port;
-    console.log(`Server is running on port ${port}`);
-
-    serve({
-      fetch: app.fetch,
-      port,
-    });
-
-    // Set up Literal instrumentation if it exists
-    if (config.literal.apiKey) {
-      setupInstrumentation();
-    }
+    console.log('Debug: Checking client build directory:', clientBuildPath);
+    const files = await fs.readdir(clientBuildPath);
+    const fileStats = await Promise.all(
+      files.map(async (file) => {
+        const filePath = path.join(clientBuildPath, file);
+        const stats = await fs.stat(filePath);
+        return {
+          name: file,
+          isDirectory: stats.isDirectory(),
+          size: stats.size,
+          path: filePath,
+        };
+      }),
+    );
+    return c.json({ clientBuildPath, files: fileStats });
   } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
+    console.error('Error listing files:', error);
+    return c.json({
+      error: error instanceof Error ? error.message : String(error),
+      clientBuildPath,
+    });
   }
-};
+});
+
+// Serve static files from client build folder
+app.use('/*', serveStatic({ root: clientBuildPath }));
+
+// Serve index.html for any route not handled by static files or API routes
+app.get('*', async (c) => {
+  try {
+    const indexHtml = await fs.readFile(path.join(clientBuildPath, 'index.html'), 'utf-8');
+    return c.html(indexHtml);
+  } catch (error) {
+    console.error('Error serving index.html:', error);
+    return c.text('Not found', 404);
+  }
+});
+
+// Start server
+const port = config.port;
+console.log(`Server is running on port ${port}`);
+
+// Set up Literal instrumentation if it exists
+try {
+  if (config.literal.apiKey) {
+    setupInstrumentation();
+  }
+} catch (error) {
+  console.error('Failed to set up Literal instrumentation:', error);
+}
 
 // Handle graceful shutdown
 process.on('SIGINT', () => {
@@ -102,8 +97,7 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-// Start the server
-startServer().catch((err) => {
-  console.error('Fatal error starting server:', err);
-  process.exit(1);
+serve({
+  fetch: app.fetch,
+  port,
 });
