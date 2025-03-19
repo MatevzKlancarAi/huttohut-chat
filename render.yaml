@@ -4,15 +4,8 @@ services:
     name: huttohut-chat
     env: node
     plan: free
-    buildCommand: |
-      npm install -g pnpm && 
-      # Build client
-      cd client && npm install && npm run build && 
-      # Copy client build to where server can access it
-      mkdir -p ../server/client-build && cp -r build/* ../server/client-build/ && 
-      # Build server
-      cd ../server && pnpm install --no-frozen-lockfile && pnpm build
-    startCommand: cd server && node dist/index.js
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: PORT
         value: 10000
