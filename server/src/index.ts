@@ -32,12 +32,12 @@ app.post('/api/search', async (c) => {
 // Add a health check endpoint
 app.get('/health', (c) => c.json({ status: 'ok' }));
 
-// Serve static files (CSS, JS, images, etc.)
+// Serve static files
 app.use('/static/*', serveStatic({ root: clientBuildPath }));
 app.get('/favicon.ico', serveStatic({ root: clientBuildPath }));
 app.get('/asset-manifest.json', serveStatic({ root: clientBuildPath }));
 
-// Serve index.html for all other routes to support client-side routing
+// Serve index.html for all other routes (for client-side routing)
 app.get('*', async (c) => {
   try {
     const content = await fs.readFile(path.join(clientBuildPath, 'index.html'));
