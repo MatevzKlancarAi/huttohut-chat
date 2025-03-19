@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "HutToHut Chat Application with Vector Search Integration",
   "scripts": {
-    "start": "cd server && pnpm start",
-    "build": "cd client && npm install && npm run build && cd ../server && pnpm install && pnpm build",
+    "start": "cd server && node dist/index.js",
+    "build": "cd client && npm install && npm run build && mkdir -p ../server/client-build && cp -r build/* ../server/client-build/ && cd ../server && pnpm install && pnpm build",
     "dev:client": "cd client && npm start",
     "dev:server": "cd server && pnpm dev",
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
     "format": "cd server && pnpm format",
     "format:check": "cd server && pnpm format:check",
     "fix": "cd server && pnpm fix"
