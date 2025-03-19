@@ -9,7 +9,7 @@ services:
       # Copy client build to where server can access it
       mkdir -p ../server/client-build && cp -r build/* ../server/client-build/ && 
       # Build server
-      cd ../server && pnpm install && pnpm run build
+      cd ../server && pnpm install --no-frozen-lockfile && pnpm run build
     startCommand: cd server && node dist/index.js
     envVars:
       - key: PORT
